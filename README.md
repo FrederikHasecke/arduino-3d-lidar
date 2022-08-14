@@ -15,6 +15,8 @@ Please note: This project uses 8x vl53l0x Lidar range finders, which have a reli
 Rotating Lidar Sensor     |    Lidar Data Visualization (5x Speed)
 :------------------------:|:--------------------------:
 ![Rotating Lidar Sensor](Images/spinning_lidar_small.gif) |![Live Visulization of the Lidar Sensor](Images/data_fast.gif)
+
+
 The working principle of this lidar is very simple: There are 8 vl53l0x laser range sensors mounted around a rotating axis.
 Each sensor is oriented toward the same origin with a different vertical angle. 
 A rotation encoder disc at the bottom of the lidar measures the rotation angle at a given time. 
