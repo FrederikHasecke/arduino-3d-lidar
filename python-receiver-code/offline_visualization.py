@@ -135,7 +135,7 @@ if __name__ == '__main__':
         vis.update_renderer()
 
         # Wait for the required amount of time to achieve the recording speed of 2 fps
-        time.sleep(0.05)
+        time.sleep(0.5)
 
     vis.destroy_window() 
 
