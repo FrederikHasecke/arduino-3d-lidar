@@ -73,7 +73,7 @@ def convert_to_cartesian(pc):
 # parse arguments
 def parse_args():
     parser = argparse.ArgumentParser(description='Visualize point cloud data from .npy files')
-    parser.add_argument('--path', type=str, default='data/sequences/01/lidar_points', help='Path to the directory where the data is stored')
+    parser.add_argument('--path', type=str, help='Path to the directory where the data is stored')
     args = parser.parse_args()
     return args
 
@@ -81,14 +81,20 @@ if __name__ == '__main__':
     # parse arguments
     args = parse_args()
 
-    # get the path of the current file
-    current_file_path = os.path.abspath(__file__)
+    if args.path:
+        data_dir_path = args.path
 
-    # get the parent directory of the current file
-    current_file_dir = os.path.dirname(os.path.dirname(current_file_path))
+    else:
+        path = 'data/sequences/01/lidar_points'
 
-    # construct the absolute path to the data directory
-    data_dir_path = os.path.join(current_file_dir, os.path.normpath(args.path))
+        # get the path of the current file
+        current_file_path = os.path.abspath(__file__)
+
+        # get the parent directory of the current file
+        current_file_dir = os.path.dirname(os.path.dirname(current_file_path))
+
+        # construct the absolute path to the data directory
+        data_dir_path = os.path.join(current_file_dir, os.path.normpath(path))
 
     # list all files in the directory
     files = os.listdir(data_dir_path)
