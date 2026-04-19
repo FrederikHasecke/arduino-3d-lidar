@@ -3,25 +3,26 @@
 #include <VL53L0X.h>
 #include "TimerOne.h" // Interupt
 
-#define XSHUT_pin8 10
-#define XSHUT_pin7 9
-#define XSHUT_pin6 8
-#define XSHUT_pin5 7
-#define XSHUT_pin4 6
-#define XSHUT_pin3 5
-#define XSHUT_pin2 4
-//#define XSHUT_pin1 3 //not required for address change
+#define XSHUT_pin7 10
+#define XSHUT_pin6 9
+#define XSHUT_pin5 8
+#define XSHUT_pin4 7
+#define XSHUT_pin3 6
+#define XSHUT_pin2 5
+#define XSHUT_pin1 4
+//#define XSHUT_pin0 3 // not required for address change
 
 //ADDRESS_DEFAULT 0b0101001 or 41
-//#define Sensor1_newAddress 41 //not required for address change
-#define Sensor2_newAddress 42 
-#define Sensor3_newAddress 43
-#define Sensor4_newAddress 44
-#define Sensor5_newAddress 45
-#define Sensor6_newAddress 46
-#define Sensor7_newAddress 47
-#define Sensor8_newAddress 48
+//#define Sensor0_newAddress 41 // not required for address change
+#define Sensor1_newAddress 42
+#define Sensor2_newAddress 43
+#define Sensor3_newAddress 44
+#define Sensor4_newAddress 45
+#define Sensor5_newAddress 46
+#define Sensor6_newAddress 47
+#define Sensor7_newAddress 48
 
+VL53L0X Sensor0;
 VL53L0X Sensor1;
 VL53L0X Sensor2;
 VL53L0X Sensor3;
@@ -29,7 +30,6 @@ VL53L0X Sensor4;
 VL53L0X Sensor5;
 VL53L0X Sensor6;
 VL53L0X Sensor7;
-VL53L0X Sensor8;
 
 // Define Motor Pins
 #define enA 11
@@ -43,6 +43,7 @@ double goal_mspr = 500; // we want two rotations per second
 volatile int mspr; // ms per rotation
 
 // Lidar distance variables
+int dist0;
 int dist1;
 int dist2;
 int dist3;
@@ -50,9 +51,9 @@ int dist4;
 int dist5;
 int dist6;
 int dist7;
-int dist8;
 
 // Lidar sensor angle variables
+int angle0;
 int angle1;
 int angle2;
 int angle3;
@@ -60,7 +61,6 @@ int angle4;
 int angle5;
 int angle6;
 int angle7;
-int angle8;
 
 int max_range = 3000;
 
@@ -82,14 +82,14 @@ void setup()
   /*WARNING*/
   
   //Shutdown pins of VL53L0X ACTIVE-LOW-ONLY NO TOLERANT TO 5V will fry them
-  //pinMode(XSHUT_pin1, OUTPUT);//not required for address change
+  //pinMode(XSHUT_pin0, OUTPUT); // not required for address change
+  pinMode(XSHUT_pin1, OUTPUT);
   pinMode(XSHUT_pin2, OUTPUT);
   pinMode(XSHUT_pin3, OUTPUT);
   pinMode(XSHUT_pin4, OUTPUT);
   pinMode(XSHUT_pin5, OUTPUT);
   pinMode(XSHUT_pin6, OUTPUT);
   pinMode(XSHUT_pin7, OUTPUT);
-  pinMode(XSHUT_pin8, OUTPUT);
 
   //Motor
   pinMode(enA, OUTPUT); //PWM for rotation speed
@@ -104,39 +104,40 @@ void setup()
   Wire.begin();
 
   //Change address of sensor and power up next one  
-  Sensor8.setAddress(Sensor8_newAddress);
-  pinMode(XSHUT_pin8, INPUT);
-  delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
-  
   Sensor7.setAddress(Sensor7_newAddress);
   pinMode(XSHUT_pin7, INPUT);
-  delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"  
-
-  Sensor6.setAddress(Sensor6_newAddress);
-  pinMode(XSHUT_pin6, INPUT);
   delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
   
+  Sensor6.setAddress(Sensor6_newAddress);
+  pinMode(XSHUT_pin6, INPUT);
+  delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"  
+
   Sensor5.setAddress(Sensor5_newAddress);
   pinMode(XSHUT_pin5, INPUT);
   delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
-
+  
   Sensor4.setAddress(Sensor4_newAddress);
   pinMode(XSHUT_pin4, INPUT);
   delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
-  
+
   Sensor3.setAddress(Sensor3_newAddress);
   pinMode(XSHUT_pin3, INPUT);
   delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
-
+  
   Sensor2.setAddress(Sensor2_newAddress);
   pinMode(XSHUT_pin2, INPUT);
   delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
 
-  //Sensor1.setAddress(Sensor1_newAddress);
-  //pinMode(XSHUT_pin1, INPUT);
+  Sensor1.setAddress(Sensor1_newAddress);
+  pinMode(XSHUT_pin1, INPUT);
+  delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
+
+  //Sensor0.setAddress(Sensor0_newAddress);
+  //pinMode(XSHUT_pin0, INPUT);
   //delay(10); //For power-up procedure t-boot max 1.2ms "Datasheet: 2.9 Power sequence"
 
 
+  Sensor0.init();
   Sensor1.init();
   Sensor2.init();
   Sensor3.init();
@@ -144,9 +145,9 @@ void setup()
   Sensor5.init();
   Sensor6.init();
   Sensor7.init();
-  Sensor8.init();
 
   
+  Sensor0.setMeasurementTimingBudget(20000);
   Sensor1.setMeasurementTimingBudget(20000);
   Sensor2.setMeasurementTimingBudget(20000);
   Sensor3.setMeasurementTimingBudget(20000);
@@ -154,12 +155,12 @@ void setup()
   Sensor5.setMeasurementTimingBudget(20000);
   Sensor6.setMeasurementTimingBudget(20000);
   Sensor7.setMeasurementTimingBudget(20000);
-  Sensor8.setMeasurementTimingBudget(20000);
 
   // Start continuous back-to-back mode (take readings as
   // fast as possible).  To use continuous timed mode
   // instead, provide a desired inter-measurement period in
   // ms (e.g. sensor.startContinuous(100)).
+  Sensor0.startContinuous();
   Sensor1.startContinuous();
   Sensor2.startContinuous();
   Sensor3.startContinuous();
@@ -167,7 +168,6 @@ void setup()
   Sensor5.startContinuous();
   Sensor6.startContinuous();
   Sensor7.startContinuous();
-  Sensor8.startContinuous();
 
   // Spin Motor
   digitalWrite(in1, LOW);
@@ -293,6 +293,9 @@ void loop()
           
   }
 
+  dist0 = Sensor0.readRangeContinuousMillimeters();
+  angle0 = angle;
+
   dist1 = Sensor1.readRangeContinuousMillimeters();
   angle1 = angle;
   
@@ -314,9 +317,7 @@ void loop()
   dist7 = Sensor7.readRangeContinuousMillimeters();
   angle7 = angle;
 
-  dist8 = Sensor8.readRangeContinuousMillimeters();
-  angle8 = angle;
-
+  if (dist0 > max_range){dist0=max_range;}
   if (dist1 > max_range){dist1=max_range;}
   if (dist2 > max_range){dist2=max_range;}
   if (dist3 > max_range){dist3=max_range;}
@@ -324,10 +325,14 @@ void loop()
   if (dist5 > max_range){dist5=max_range;}
   if (dist6 > max_range){dist6=max_range;}
   if (dist7 > max_range){dist7=max_range;}
-  if (dist8 > max_range){dist8=max_range;}
 
   Serial.write(254); // START Codon 1
   Serial.write(253); // START Codon 2
+
+  Serial.write(angle0 >> 8);  
+  Serial.write(angle0 & 0xFF);    
+  Serial.write(dist0 >> 8);  
+  Serial.write(dist0 & 0xFF);    
 
   Serial.write(angle1 >> 8);  
   Serial.write(angle1 & 0xFF);    
@@ -363,11 +368,6 @@ void loop()
   Serial.write(angle7 & 0xFF);    
   Serial.write(dist7 >> 8);  
   Serial.write(dist7 & 0xFF);    
-
-  Serial.write(angle8 >> 8);  
-  Serial.write(angle8 & 0xFF);    
-  Serial.write(dist8 >> 8);  
-  Serial.write(dist8 & 0xFF);    
 
   Serial.write(252); // END Codon 1
   Serial.write(251); // END Codon 2

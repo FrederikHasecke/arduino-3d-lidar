@@ -1,95 +1,142 @@
 # Arduino 3D LiDAR
 
-**TL;DR**: This LiDAR sensor has a **range of roughly 3 meters**, a **scan rate of 2 Hz**, and an opening **angle of 30° (vertical field of view)**. 
-The indivdual **vl53l0x** components have a **high spread* of 35° for the emitter and 25° for the receiver, which results in a **very rough point cloud**. 
-This is sufficient for applications such as mapping rooms for Roomba-style robots or assisting in autonomous navigation within your home, but **do not expect high-quality point cloud data**. Please check the sample data in the repository to verify the quality of the resulting point cloud data before embarking on this project.
+> [!IMPORTANT]
+> Status: prototype. This repository documents a functional proof-of-concept with working firmware, printable parts, wiring references, sample data, and offline visualization tooling. Expect rough output, manual setup, and iteration rather than a polished product.
 
-If you are interested in longer-range sensors and not necessarily in 3D point cloud data, consider this alternative project: https://github.com/iliasam/OpenTOFLidar    
+> [!NOTE]
+> TL;DR: This project is a low-cost rotating 3D LiDAR built from 8 `VL53L0X` sensors, with firmware for Arduino/ESP32 and Python tools for offline visualization. It is useful for tinkering and rough room-scale mapping, but it is not a high-accuracy or high-fidelity LiDAR system.
 
-## Introduction
-This repository houses all the necessary resources to build a budget-friendly 3D rotating LiDAR sensor.
-With this sensor you can capture a rough 360° view with a 30° opening angle at a scan rate of 2 Hz. 
+If you are interested in longer-range sensors and not necessarily in 3D point cloud data, consider this alternative project: https://github.com/iliasam/OpenTOFLidar
 
-Included in this repository are .stl files, a list of required electronic components, wiring instructions, and firmware. 
+## Overview
+This repository contains the files needed to build a budget-friendly rotating 3D LiDAR sensor.
+It combines 3D-printed parts, simple electronics, microcontroller firmware, sample recordings, and a lightweight Python viewer for inspecting captured point clouds.
 
+Rotating LiDAR Sensor | LiDAR Data Visualization (5x Speed)
+:---------------------:|:--------------------------:
+![Rotating LiDAR Sensor](Images/spinning_lidar_small.gif) | ![LiDAR Data Visualization](Images/data_fast.gif)
 
-Rotating LiDAR Sensor     |    LiDAR Data Visualization (5x Speed)
-:------------------------:|:--------------------------:
-![Rotating LiDAR Sensor](Images/spinning_lidar_small.gif) |![Live Visualization of the LiDAR Sensor](Images/data_fast.gif)
+## Repository Contents
+| Category | Path | Description |
+|----------|------|-------------|
+| Firmware | `arduino-code/` | Arduino Uno firmware for the 8-sensor rotating scanner |
+| Firmware | `esp32-code/` | ESP32 firmware variant for the same hardware concept |
+| Python tools | `python-receiver-code/` | Offline visualization utilities for recorded `.npy` frames |
+| 3D-print files | `stl-files/` | Printable mechanical parts plus assembly notes |
+| Sample data | `data/sequences/01/lidar_points/` | Example recording for validating the Python viewer |
+| Reference media | `Images/` | GIFs, wiring diagrams, and schematic images used in the docs |
+
+## What This Project Is
+- A low-cost 3D sensing prototype built from commodity time-of-flight sensors
+- A hardware and firmware project that demonstrates multi-sensor scanning and reconstruction
+- A practical tinkering platform for rough room-scale mapping and experimentation
+
+## What This Project Is Not
+- A drop-in replacement for a commercial LiDAR
+- A precision point-cloud sensor for robotics or surveying workflows
+- A polished product with enclosure, calibration workflow, and turnkey software
 
 ## How It Works
-8 vl53l0x laser range sensors are mounted on a rotating axis, each oriented toward a common origin at a different vertical angle. The rotation angle is measured by a rotation encoder disc at the base of the LiDAR. The three values - range, elevation angle, and rotation angle - allow us to reconstruct the relative position in a Cartesian coordinate system from the common origin.
+Eight `VL53L0X` range sensors are mounted on a rotating axis, each aimed at a different vertical angle toward a common origin. A rotation encoder at the base provides the azimuth angle. Combining range, vertical channel angle, and rotation angle makes it possible to reconstruct the scene in Cartesian coordinates.
 
-|  ![Schematic Drawing](Images/schematic.png)  |
-| :-----------------------------------------------------------------: |
-|  *Schematic Drawing of the Mounting Angles*                         |
+| ![Schematic Drawing](Images/schematic.png) |
+| :-----------------------------------------: |
+| *Schematic drawing of the mounting angles* |
 
-One example applications for this 3D LiDAR is e.g. mapping rooms for Roomba-style robots to assisting in autonomous navigation within your home.
+The resulting point cloud is intentionally rough, but it is still useful for quick experiments such as room-scale occupancy mapping or basic spatial inspection.
 
-|  ![Occupancy Grid Map using the LiDAR Sensor Data](Images/ogm.gif)  |
-| :-----------------------------------------------------------------: |
-|  *Occupancy Grid Map Using the LiDAR Sensor Data (1x Speed)*        |
+| ![Occupancy Grid Map using the LiDAR Sensor Data](Images/ogm.gif) |
+| :---------------------------------------------------------------: |
+| *Occupancy grid map generated from LiDAR sensor data (1x speed)* |
 
 ## Data Sample
-You can verify the quality of the resulting point cloud data before embarking on this project by examining the log sequence displayed above. This can be found [here](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/data/sequences/01/lidar_points). Use [this script](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/python-receiver-code/offline_visualization.py) to visualize the points in Python.
+The repository includes a sample recording in `data/sequences/01/lidar_points/` so you can inspect the expected output before building the hardware. Use `python-receiver-code/offline_visualization.py` to play back the bundled frames or your own recordings.
 
 ## Getting Started
-1. **3D Printing Part List** - Download the STL files for 3D printing [here](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/stl-files) and find the recommended printing orientation [here](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/stl-files/assembly-instructions.md). 
+1. Review the sample output.
+   Check the GIFs above and the bundled `.npy` frames to understand the point-cloud quality you should expect.
+2. Print the mechanical parts.
+   Download the STL files from `stl-files/` and review `stl-files/assembly-instructions.md` for print orientation, wiring, and bring-up notes.
+3. Choose a firmware target.
+   Use `arduino-code/` for Arduino Uno or `esp32-code/` for ESP32. The wiring tables in the assembly guide match those firmware layouts.
+4. Set up the Python viewer.
+   The repository currently provides offline visualization for recorded `.npy` frames.
 
-2. **Sensor Code** - The C code for the microcontroller is available for [Arduino UNO](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/arduino-code) and for [ESP32](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/esp32-code). Though untested on other microcontrollers, slight modifications should make it compatible.
+### Firmware Requirements
+- Install the Arduino library `VL53L0X` by Pololu before compiling either firmware sketch.
+- In Arduino IDE: `Sketch` -> `Include Library` -> `Manage Libraries...`, then search for `VL53L0X` and install the Pololu package.
+- The ESP32 sketch in `esp32-code/` is updated for ESP32 Arduino core `3.x` timer APIs.
 
-3. **Python Interface** - If you prefer Python for its simplicity, feel free to use [my prepared Python scripts](https://github.com/FrederikHasecke/arduino-3d-lidar/tree/main/python-receiver-code) to record and/or visualize the sensor output.  
+### Python Requirements
+- Python `3.13+`
+- `numpy`
+- [VisPy](https://vispy.org/) for visualization
+- [glfw](https://www.glfw.org/) as the lightweight windowing backend
 
-    - Requirements
-        - Python 3.10 - 3.12
-        - numpy
-        - [Open3D](https://github.com/isl-org/Open3D) for visualization
+### Install With `uv` (Recommended)
 
-    - Install with `uv` (recommended)
-
+#### Windows:
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-uv venv --python 3.10
+uv python install 3.13
+uv venv --python 3.13
 .venv\Scripts\activate
 uv sync
 ```
 
-    - Install with `pip`
-
+#### Linux/Mac:
 ```bash
-python -m venv .venv
+curl -Ls https://astral.sh/uv/install.sh | sh
+uv python install 3.13
+uv venv --python 3.13
+source .venv/bin/activate
+uv sync
+```
+
+These commands use Python `3.13` as the default modern setup. If you already have another compatible interpreter installed, adjust the version accordingly.
+
+### Install With `pip`
+```bash
+py -3.13 -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install .
 ```
 
-    - Offline visualization
+If you do not have Python `3.13` installed yet, replace `py -3.13` with any available compatible interpreter.
 
+### Run the Offline Viewer
 ```bash
 python python-receiver-code/offline_visualization.py
 ```
 
-When no `--path` is provided, the script automatically plays the bundled sample sequence from `data/sequences/01/lidar_points` and prints a disclaimer that this is the repository's basic input pointcloud sample. The sample data is useful for checking that the viewer works, but it is intentionally rough and should not be treated as a high-quality point cloud.
+When no `--path` is provided, the script opens the bundled sample sequence from `data/sequences/01/lidar_points` and prints a disclaimer that the sample is intentionally rough.
 
-To visualize a different recording, pass either a `.npy` frame or a directory of `.npy` frames:
+The viewer uses a lightweight VisPy and GLFW window and loops until you close it, which makes it a quick install sanity check.
+
+To visualize a different recording, pass either a single `.npy` frame or a directory of `.npy` frames:
 
 ```bash
 python python-receiver-code/offline_visualization.py --path path\to\lidar_points
 ```
 
-4. **ROS Interface** - Currently under development. If you wish to contribute to communication between the Arduino/ESP32 and a Master, please feel free to submit a PR.
+You can also adjust playback speed and marker size:
+
+```bash
+python python-receiver-code/offline_visualization.py --fps 4 --point-size 10
+```
 
 ## Required Components
-Below is a complete list of parts needed to build this 8-channel LiDAR sensor:
+Below is a practical parts list for the 8-channel prototype. The Amazon links are non-affiliate example search links because exact listings change frequently.
 
-Part                                  | Quantity | Cost per Item | Amazon Link
---------------------------------------|--------|---------------|------------
-Vl53l0x                               |   8    |               |
-Basic 3-12V DC Motor                  |   1    |               |
-Motor Driver                          |   1    |               |
-Microcontroller                       |   1    |               |
-12 Wire Slip Ring                     |   1    |               |
-Motor Comparator Speed Sensor Module  |   1    |               |
-Jumper Wires                          |  37    |               |
-Set of M3 Screws                      |   1    |               |
-Rubber Band                           |   1    |               |
+| Part | Quantity | Notes | Amazon Link |
+|------|----------|-------|-------------|
+| `VL53L0X` breakout board | 8 | Use boards with accessible `XSHUT` pins for address reassignment | [Search](https://www.amazon.com/s?k=VL53L0X+breakout) |
+| DC motor (3-12 V) | 1 | Use the ones with the yellow gear box | [Search](https://www.amazon.com/s?k=3-6+VDC+gear+motor) |
+| Motor driver module | 1 | Any board compatible with your motor current and supply voltage (In doubt use L298N) | [Search](https://www.amazon.com/s?k=L298N+motor+driver) |
+| Microcontroller | 1 | Arduino Uno or ESP32, depending on the firmware you plan to flash | [Search](https://www.amazon.com/s?k=Arduino+Uno+or+ESP32) |
+| 12-wire slip ring | 1 | Carries power and signals through the rotating joint | [Search](https://www.amazon.com/s?k=12+wire+slip+ring) |
+| Speed sensor / encoder module | 1 | Used to establish the rotation reference angle | [Search](https://www.amazon.com/s?k=LM393+speed+sensor+module) |
+| Jumper wires | 1 set | Length depends on your mechanical layout | [Search](https://www.amazon.com/s?k=dupont+jumper+wires) |
+| M3 screw assortment | 1 set | Verify lengths against your print tolerances and mounting choices | [Search](https://www.amazon.com/s?k=M3+screw+assortment) |
+| Rubber band | 1 | Used in the current mechanical drive arrangement | [Search](https://www.amazon.com/s?k=rubber+bands) |

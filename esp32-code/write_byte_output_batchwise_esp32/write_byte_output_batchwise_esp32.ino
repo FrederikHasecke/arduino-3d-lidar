@@ -219,11 +219,11 @@ void setup()
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
 
-  // ESP32 Timer
-  timer = timerBegin(0, 80, true); // prescaler of 80 is specifying that value in microseconds (CPU is 80MHz)
-  timerAttachInterrupt(timer, &onTimer, false);
-  timerAlarmWrite(timer, 1389, true); // 720deg in 1 second, so 1 deg every 1/720 sec  (1/1/720*1000*1000)
-  timerAlarmEnable(timer);
+  // ESP32 core 3.x uses the new timer API. Use a 1 MHz timer so the
+  // alarm value remains in microseconds like the original sketch.
+  timer = timerBegin(1000000);
+  timerAttachInterrupt(timer, &onTimer);
+  timerAlarm(timer, 1389, true, 0); // 720deg in 1 second, so 1 deg every 1/720 sec
 
   // Attach the interupt for rotation encoder
   attachInterrupt(pinEncoderPos, encoderTick, RISING);
@@ -333,7 +333,7 @@ void loop()
   angle6 = angle;
 
   dist7 = Sensor6.readRangeContinuousMillimeters();
-  if (Sensor6.timeoutOccurred()) { dist6 = 0; }
+  if (Sensor6.timeoutOccurred()) { dist7 = 0; }
   angle7 = angle;
 
 
