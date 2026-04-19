@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arduino-3d-lidar-python-tools"
+version = "0.1.0"
+description = "Python tooling for the Arduino 3D LiDAR project."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "numpy>=1.21",
+    "open3d>=0.17",
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.uv]
+package = false
