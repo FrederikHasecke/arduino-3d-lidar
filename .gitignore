@@ -8,7 +8,11 @@
 
 # python
 arduino_3d_lidar_python_tools.egg-info
-python-receiver-code/__pycache__
+__pycache__/
+.pytest_cache/
+
+# recordings captured by receive_data.py / live_visualization.py --save
+data/sequences/20*/
 
 # virtualenv
 .venv

@@ -10,11 +10,12 @@ from pathlib import Path
 import numpy as np
 
 from offline_visualization import (
-    ORIGIN_LINE_COLORS,
-    ORIGIN_MARKER_COLOR,
+    MAX_RANGE_MM,
+    configure_origin,
     convert_to_cartesian,
+    drop_invalid_points,
+    fit_view_to_bounds,
     load_vispy_modules,
-    origin_axis_segments,
     point_colors,
 )
 from receive_data import FrameAccumulator, SerialPacketReader, open_serial_connection, resolve_output_dir, save_frame
@@ -46,6 +47,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=8.0,
         help="Point size in screen pixels. Defaults to 8.0.",
+    )
+    parser.add_argument(
+        "--keep-invalid",
+        action="store_true",
+        help=f"Also draw points with no valid return (0 mm or clamped to {MAX_RANGE_MM} mm).",
     )
     parser.add_argument(
         "--save",
@@ -106,6 +112,7 @@ class LivePointCloudViewer:
         worker: SerialFrameWorker,
         frame_queue: queue.SimpleQueue[tuple[np.ndarray, Path | None]],
         point_size: float,
+        keep_invalid: bool = False,
     ) -> None:
         if point_size <= 0:
             raise ValueError("--point-size must be greater than 0.")
@@ -115,6 +122,7 @@ class LivePointCloudViewer:
         self._worker = worker
         self._frame_queue = frame_queue
         self._point_size = point_size
+        self._keep_invalid = keep_invalid
         self._frame_count = 0
         self._latest_saved_path: Path | None = None
         self._bounds_min: np.ndarray | None = None
@@ -154,41 +162,26 @@ class LivePointCloudViewer:
             width=2.0,
             method="gl",
         )
-        self._configure_origin(axis_length=0.2)
+        configure_origin(self.origin_marker, self.origin_axes, axis_length=0.2, point_size=point_size)
 
         self.timer = app.Timer(interval=1.0 / DEFAULT_REFRESH_HZ, connect=self._on_timer, start=True)
         self.canvas.events.close.connect(self._on_close)
 
-    def _configure_origin(self, axis_length: float) -> None:
-        self.origin_marker.set_data(
-            pos=np.zeros((1, 3), dtype=np.float32),
-            face_color=ORIGIN_MARKER_COLOR,
-            edge_color=np.array([[0.04, 0.04, 0.04, 1.0]], dtype=np.float32),
-            edge_width=1.5,
-            size=max(self._point_size * 1.75, 12.0),
-            symbol="star",
-        )
-        self.origin_axes.set_data(pos=origin_axis_segments(axis_length), color=ORIGIN_LINE_COLORS)
-
     def _apply_camera_bounds(self) -> None:
         if self._bounds_min is None or self._bounds_max is None:
             return
-
-        center = (self._bounds_min + self._bounds_max) / 2.0
-        size = np.maximum(self._bounds_max - self._bounds_min, 0.1)
-        padding = np.maximum(size * 0.15, 0.1)
-        axis_length = float(max(np.max(size) * 0.08, 0.08))
-        self._configure_origin(axis_length)
-
-        self.view.camera.center = tuple(center.tolist())
-        self.view.camera.scale_factor = float(np.max(size + padding) * 1.6)
-        self.view.camera.set_range(
-            x=(float(self._bounds_min[0] - padding[0]), float(self._bounds_max[0] + padding[0])),
-            y=(float(self._bounds_min[1] - padding[1]), float(self._bounds_max[1] + padding[1])),
-            z=(float(self._bounds_min[2] - padding[2]), float(self._bounds_max[2] + padding[2])),
+        fit_view_to_bounds(
+            self.view,
+            self.origin_marker,
+            self.origin_axes,
+            self._bounds_min,
+            self._bounds_max,
+            self._point_size,
         )
 
     def _show_frame(self, raw_frame: np.ndarray, saved_path: Path | None) -> None:
+        if not self._keep_invalid:
+            raw_frame = drop_invalid_points(raw_frame)
         point_cloud = convert_to_cartesian(raw_frame)
         self.markers.set_data(
             pos=point_cloud,
@@ -258,7 +251,9 @@ def main() -> None:
 
     frame_queue: queue.SimpleQueue[tuple[np.ndarray, Path | None]] = queue.SimpleQueue()
     worker = SerialFrameWorker(serial_connection, frame_queue, output_dir)
-    viewer = LivePointCloudViewer(worker, frame_queue, point_size=args.point_size)
+    viewer = LivePointCloudViewer(
+        worker, frame_queue, point_size=args.point_size, keep_invalid=args.keep_invalid
+    )
     viewer.run()
 
 

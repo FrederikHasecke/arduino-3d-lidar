@@ -145,21 +145,9 @@ class SerialPacketReader:
         while stop_event is None or not stop_event.is_set():
             start_index = self._buffer.find(START_MARKER)
             if start_index == -1:
-                chunk = self._read_more()
-                if not chunk:
-                    continue
-
-                if self._buffer and self._buffer[-1:] == START_MARKER[:1] and chunk[:1] == START_MARKER[1:2]:
-                    self._buffer[:] = START_MARKER
-                    self._buffer.extend(chunk[1:])
-                else:
-                    self._buffer.clear()
-                    if chunk[-1:] == START_MARKER[:1]:
-                        self._buffer.extend(chunk[-1:])
-                    if start_index == -1:
-                        embedded_start = chunk.find(START_MARKER)
-                        if embedded_start != -1:
-                            self._buffer[:] = chunk[embedded_start:]
+                # Keep the last byte in case the start marker straddles two reads.
+                del self._buffer[:-1]
+                self._buffer.extend(self._read_more())
                 continue
 
             if start_index > 0:

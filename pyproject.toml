@@ -1,13 +1,17 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "arduino-3d-lidar-python-tools"
 version = "0.1.0"
-description = "Python tooling for the Arduino 3D LiDAR project."
+description = "Serial capture and point-cloud viewers for a DIY rotating 3D LiDAR built from VL53L0X sensors."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Frederik Hasecke" }]
 requires-python = ">=3.13"
+keywords = ["lidar", "3d-scanner", "point-cloud", "vl53l0x", "arduino", "esp32", "vispy"]
 dependencies = [
     "numpy>=1.21",
     "vispy>=0.16.0",
@@ -15,8 +19,20 @@ dependencies = [
     "pyserial>=3.5",
 ]
 
+[project.urls]
+Homepage = "https://github.com/FrederikHasecke/arduino-3d-lidar"
+Issues = "https://github.com/FrederikHasecke/arduino-3d-lidar/issues"
+
 [tool.setuptools]
 py-modules = []
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

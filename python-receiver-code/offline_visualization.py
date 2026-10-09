@@ -9,6 +9,8 @@ import numpy as np
 
 
 DEFAULT_SAMPLE_PATH = Path("data/sequences/01/lidar_points")
+# Firmware clamps out-of-range readings to this value; such points are "no return", not surfaces.
+MAX_RANGE_MM = 3000
 ANGLE_OFFSET = np.array([0, 90, -135, -45, 135, 45, -90, 180], dtype=np.float32)
 CHANNEL_ANGLE_LUT = np.linspace(-15, 15, 8, dtype=np.float32)[::-1]
 LOW_Z_COLOR = np.array([0.20, 0.90, 1.00], dtype=np.float32)
@@ -53,6 +55,12 @@ def convert_to_cartesian(pc: np.ndarray) -> np.ndarray:
     return spherical_to_cartesian(pc_sphere)
 
 
+def drop_invalid_points(pc: np.ndarray) -> np.ndarray:
+    """Remove raw points with no valid return (distance 0 or clamped to the firmware max range)."""
+    distances = pc[:, 0]
+    return pc[(distances > 0) & (distances < MAX_RANGE_MM)]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Visualize LiDAR point cloud frames from a .npy file or directory."
@@ -73,6 +81,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=8.0,
         help="Point size in screen pixels. Defaults to 8.0.",
+    )
+    parser.add_argument(
+        "--keep-invalid",
+        action="store_true",
+        help=f"Also draw points with no valid return (0 mm or clamped to {MAX_RANGE_MM} mm).",
     )
     return parser.parse_args()
 
@@ -106,10 +119,12 @@ def collect_frame_paths(input_path: Path) -> list[Path]:
     return frame_paths
 
 
-def load_point_clouds(frame_paths: list[Path]) -> list[np.ndarray]:
+def load_point_clouds(frame_paths: list[Path], keep_invalid: bool = False) -> list[np.ndarray]:
     point_clouds = []
     for frame_path in frame_paths:
         raw_point_cloud = np.load(frame_path)
+        if not keep_invalid:
+            raw_point_cloud = drop_invalid_points(raw_point_cloud)
         point_clouds.append(convert_to_cartesian(raw_point_cloud))
     return point_clouds
 
@@ -179,6 +194,36 @@ def origin_axis_segments(axis_length: float) -> np.ndarray:
     )
 
 
+def fit_view_to_bounds(view, origin_marker, origin_axes, min_corner, max_corner, point_size: float) -> None:
+    """Point the camera at the given bounds and scale the origin marker and axes to match."""
+    center = (min_corner + max_corner) / 2.0
+    size = np.maximum(max_corner - min_corner, 0.1)
+    padding = np.maximum(size * 0.15, 0.1)
+    axis_length = float(max(np.max(size) * 0.08, 0.08))
+
+    view.camera.center = tuple(center.tolist())
+    view.camera.scale_factor = float(np.max(size + padding) * 1.6)
+    view.camera.set_range(
+        x=(float(min_corner[0] - padding[0]), float(max_corner[0] + padding[0])),
+        y=(float(min_corner[1] - padding[1]), float(max_corner[1] + padding[1])),
+        z=(float(min_corner[2] - padding[2]), float(max_corner[2] + padding[2])),
+    )
+    configure_origin(origin_marker, origin_axes, axis_length, point_size)
+
+
+def configure_origin(origin_marker, origin_axes, axis_length: float, point_size: float) -> None:
+    """Draw the sensor origin as a star with short RGB axes."""
+    origin_marker.set_data(
+        pos=np.zeros((1, 3), dtype=np.float32),
+        face_color=ORIGIN_MARKER_COLOR,
+        edge_color=np.array([[0.04, 0.04, 0.04, 1.0]], dtype=np.float32),
+        edge_width=1.5,
+        size=max(point_size * 1.75, 12.0),
+        symbol="star",
+    )
+    origin_axes.set_data(pos=origin_axis_segments(axis_length), color=ORIGIN_LINE_COLORS)
+
+
 class OfflinePointCloudViewer:
     def __init__(self, point_clouds: list[np.ndarray], fps: float, point_size: float) -> None:
         if fps <= 0:
@@ -232,27 +277,9 @@ class OfflinePointCloudViewer:
 
     def _configure_camera(self) -> None:
         min_corner, max_corner = point_cloud_bounds(self.point_clouds)
-        center = (min_corner + max_corner) / 2.0
-        size = np.maximum(max_corner - min_corner, 0.1)
-        padding = np.maximum(size * 0.15, 0.1)
-        axis_length = float(max(np.max(size) * 0.08, 0.08))
-
-        self.view.camera.center = tuple(center.tolist())
-        self.view.camera.scale_factor = float(np.max(size + padding) * 1.6)
-        self.view.camera.set_range(
-            x=(float(min_corner[0] - padding[0]), float(max_corner[0] + padding[0])),
-            y=(float(min_corner[1] - padding[1]), float(max_corner[1] + padding[1])),
-            z=(float(min_corner[2] - padding[2]), float(max_corner[2] + padding[2])),
+        fit_view_to_bounds(
+            self.view, self.origin_marker, self.origin_axes, min_corner, max_corner, self.point_size
         )
-        self.origin_marker.set_data(
-            pos=np.zeros((1, 3), dtype=np.float32),
-            face_color=ORIGIN_MARKER_COLOR,
-            edge_color=np.array([[0.04, 0.04, 0.04, 1.0]], dtype=np.float32),
-            edge_width=1.5,
-            size=max(self.point_size * 1.75, 12.0),
-            symbol="star",
-        )
-        self.origin_axes.set_data(pos=origin_axis_segments(axis_length), color=ORIGIN_LINE_COLORS)
 
     def _show_frame(self, frame_index: int) -> None:
         point_cloud = self.point_clouds[frame_index]
@@ -288,7 +315,7 @@ def main() -> None:
     args = parse_args()
     input_path, using_default_sample = resolve_input_path(args.path)
     frame_paths = collect_frame_paths(input_path)
-    point_clouds = load_point_clouds(frame_paths)
+    point_clouds = load_point_clouds(frame_paths, keep_invalid=args.keep_invalid)
 
     if using_default_sample:
         print_default_sample_disclaimer(input_path, len(frame_paths))
@@ -301,7 +328,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-
-
