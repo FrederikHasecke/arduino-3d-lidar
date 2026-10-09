@@ -77,12 +77,11 @@ volatile int msLastTime = 0;
 
 //// Timer 
 hw_timer_t * timer = NULL;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 //############################################
 //##           EXTRA FUNCTIONS              ##
 //############################################
-void onTimer(){
+void IRAM_ATTR onTimer(){
   angle++; // set to next angle step
 }
 
@@ -299,6 +298,7 @@ void loop()
       else if(mspr<goal_mspr-5){ // we take too short for one rotation, slow down
         motor_power--;
       }
+      motor_power = constrain(motor_power, 0, 255); // keep the duty cycle inside the 8-bit PWM range
       analogWrite(enA, int(motor_power)); 
 
           

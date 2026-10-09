@@ -287,7 +287,7 @@ void loop()
       else if(mspr<goal_mspr-5){ // we take too short for one rotation, slow down
         motor_power--;
       }
-
+      motor_power = constrain(motor_power, 0, 255); // analogWrite wraps above 255 and would stop the motor
       analogWrite(enA, int(motor_power)); 
 
           
