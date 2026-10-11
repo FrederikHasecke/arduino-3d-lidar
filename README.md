@@ -2,11 +2,18 @@
 
 A low-cost, 3D-printed rotating LiDAR scanner built from eight **VL53L0X time-of-flight sensors**, an **Arduino Uno or ESP32**, and a slip ring. It sweeps a full 360° at about 2 Hz with a ±15° vertical field of view and streams the scan over USB serial. Python tools record the scans and show them as a 3D point cloud, live or from a recording.
 
-It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR.
+It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€98** from Amazon Germany (see [Bill of materials](#bill-of-materials)).
 
-| Rotating sensor head | Map built from the sample recording |
+**No hardware yet?** The repository includes a sample recording, so you can try the viewer first:
+
+```bash
+uv sync
+uv run python python-receiver-code/offline_visualization.py
+```
+
+| Rotating sensor head | Replay inside the registered map |
 | :---: | :---: |
-| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![3D point-cloud map of an enclosure, built up revolution by revolution from the Arduino VL53L0X LiDAR as the camera orbits](Images/map_orbit.gif) |
+| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
 
 ## Contents
 
@@ -24,7 +31,7 @@ It produces a coarse point cloud, suitable for experiments, teaching, and rough 
 
 Measured on the bundled sample recording (`data/sequences/01`):
 
-| | |
+| Property | Value |
 |---|---|
 | Channels | 8 × VL53L0X, vertical angles evenly spaced from +15° to −15° |
 | Horizontal coverage | 360°, rotating at a target of 2 Hz (500 ms per revolution, closed-loop) |
@@ -34,6 +41,7 @@ Measured on the bundled sample recording (`data/sequences/01`):
 | Angle reference | 15-tooth encoder disc with one gap for the zero position |
 | Host link | USB serial, 115200 baud, 36-byte binary packets |
 | Controllers | Arduino Uno (ATmega328P) or ESP32 (Arduino core 3.x) |
+| Parts cost | ~€98 per unit (Amazon Germany, 2026) |
 
 ## How it works
 
@@ -51,11 +59,11 @@ Unrolled, one revolution is a small range image: one row per channel, one column
 | :---: |
 | *Range image of the sample recording, one revolution per frame (dark cells: no return)* |
 
-The sample was recorded on a slowly moving rover inside a small enclosure. Aligning the revolutions to each other (scan matching) recovers that motion and gives a map of the surroundings. Below, each revolution is replayed at the real 2 Hz inside that map. The red lines are the eight beams, which point in eight directions and rotate together:
+The sample was recorded on a slowly moving rover inside a small enclosure. Aligning the revolutions to each other (scan matching) recovers that motion and gives a map of the surroundings. The replay at the top of this page plays each revolution at the real 2 Hz inside that map. The red lines are the eight beams, which point in eight directions and rotate together. Below, the same map is built up revolution by revolution:
 
-| ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
+| ![3D point-cloud map of an enclosure, built up revolution by revolution from the Arduino VL53L0X LiDAR as the camera orbits](Images/map_orbit.gif) |
 | :---: |
-| *Replay inside the registered map (1× speed)* |
+| *Map built from the sample recording* |
 
 Even at this resolution, the output works for simple tasks such as building an occupancy grid map:
 
@@ -65,24 +73,41 @@ Even at this resolution, the output works for simple tasks such as building an o
 
 ## Bill of materials
 
-| Part | Qty | Notes |
-|------|-----|-------|
-| [VL53L0X breakout board](https://www.amazon.com/s?k=VL53L0X+breakout) | 8 | Must expose the `XSHUT` pin (used to assign I²C addresses) |
-| [TT gear motor](https://www.amazon.com/s?k=TT+gear+motor+3-6V) | 1 | Yellow gearbox type, 3–6 V |
-| [L298N motor driver](https://www.amazon.com/s?k=L298N+motor+driver) | 1 | Any H-bridge rated for your motor works |
-| [Arduino Uno](https://www.amazon.com/s?k=Arduino+Uno) or [ESP32-WROOM dev board](https://www.amazon.com/s?k=ESP32+WROOM+dev+board) | 1 | Pick the matching firmware below |
-| [12-wire slip ring](https://www.amazon.com/s?k=12+wire+slip+ring) | 1 | Carries power and signals to the rotating head |
-| [6204-2RS deep-groove ball bearing](https://www.amazon.com/s?k=6204-2RS+bearing) | 1 | 20 × 47 × 14 mm (bore × OD × width), sealed both sides; supports the rotating head in the base top. The prototype uses an [LFD Wälzlager 6204 2RS](https://www.amazon.de/dp/B075W2R8M5); any 6204-2RS or 6204-ZZ fits |
-| [LM393 speed sensor module](https://www.amazon.com/s?k=LM393+speed+sensor+module) | 1 | Reads the encoder disc |
-| [M3 screw assortment](https://www.amazon.com/s?k=M3+screw+assortment) | 1 set | |
-| Jumper wires, rubber band or O-ring | | Drive belt between motor gear and head |
+Prices are rounded 2026 prices for one unit from Amazon Germany, including 19% VAT. They vary by country and seller. The links simply point to the parts I used, or to a search for them where individual listings change too often to link directly. I have no affiliation with Amazon or any seller, and none of the links are affiliate links. If you have good sources for other countries, please open an issue or PR.
 
-Links are non-affiliate search links. Listings change too often to link specific products.
+| Part | Amount | Unit cost | Link |
+|------|-------:|----------:|------|
+| VL53L0X breakout board<sup>1</sup> | 8 | €2.85 | [Amazon](https://amzn.eu/d/0hz0XM7l) |
+| 12-wire slip ring<sup>2</sup> | 1 | €17.99 | [Amazon](https://amzn.eu/d/00M42s6L) |
+| Arduino Uno R3, compatible<sup>3</sup> | 1 | €13.99 | [Amazon](https://amzn.eu/d/07YWSVjQ) |
+| 9 V DC power supply<sup>4</sup> | 1 | €7.99 | [Amazon](https://amzn.eu/d/0caRRXWE) |
+| 6204-2RS ball bearing<sup>5</sup> | 1 | €9.99 | [Amazon](https://amzn.eu/d/0daEw33N) |
+| L298N motor driver | 1 | €4.99 | [Amazon](https://amzn.eu/d/0iNRK78D) |
+| TT gear motor, 3–6 V | 1 | €9.99 | [Amazon](https://amzn.eu/d/05aKF0C8) |
+| LM393 speed sensor module | 1 | €7.99 | [Amazon](https://amzn.eu/d/0ivhba8L) |
+| USB cable<sup>6</sup> | 1 | €4.19 | [Amazon](https://amzn.eu/d/00ykSAmE) |
+| PLA filament<sup>7</sup> | 131 g | €12.99 | [Amazon](https://amzn.eu/d/0cBkmGoz) |
+| M3 screws<sup>7</sup> | ~15 | €7.88 | [Amazon](https://amzn.eu/d/02Wt2UgE) |
+| Jumper wires<sup>7</sup> | ~40 | €6.99 | [Amazon](https://amzn.eu/d/0aRaSrCN) |
+| O-ring or rubber band, zip ties<sup>8</sup> | – | €1 | – |
+| **Total** | | **113.8€** | |
+
+1. Must expose the `XSHUT` pin, which the firmware uses to assign the I²C addresses.
+2. Carries power, I²C and the `XSHUT` lines to the rotating head. The ESP32 wiring uses all 12 wires.
+3. Or an [ESP32-WROOM dev board](https://amzn.eu/d/0dcB7aNT) for about €9.99, you will need a different USB cable to flash this one, see 6.
+4. Powers the motor. Anything from 7 to 9 V DC works, for example a 2S Li-ion pack or a 9V battery; the L298N drops about 2 V.
+5. 20 × 47 × 14 mm (bore × OD × width), sealed on both sides; it supports the rotating head in the base top. The link is the LFD 6204 2RS used in the prototype. Any 6204-2RS or 6204-ZZ fits.
+6. USB-B for the Uno; micro-USB or USB-C for most ESP32 boards.
+7. Cost is a 1 kg spool.
+8. The O-ring or rubber band is the drive belt between the motor gear and the head. Zip ties hold the motor plate.
+
+Several parts only come in packs (sensors in 5s or 10s, motors in 4s, LM393 modules in 5s), so if you start from nothing, expect to spend about €120+ upfront and keep the spares. Most of these parts are also available on AliExpress, which is generally cheaper but has longer shipping times; I don't link specific listings there. A 3D printer, a soldering iron (most VL53L0X breakouts ship with loose headers) and basic hand tools are not included.
 
 ## Build
 
-1. **Print the parts** in [`stl-files/`](stl-files/): base top and bottom, pillars, sensor head, encoder disc, and small gear. PLA at 0.2 mm layer height is fine.
-2. **Assemble and wire** following [`stl-files/assembly-instructions.md`](stl-files/assembly-instructions.md). It covers print orientation, mechanical assembly, pin tables for both boards, and a pre-power checklist.
+1. **Print the parts** in [`stl-files/`](stl-files/): base top and bottom, pillars, sensor head, encoder disc, and small gear. PLA at 0.2 mm layer height with 20% infill and supports is fine. All parts fit together on a 220 × 220 mm bed and take about 21 hours and 131 g of filament.
+2. **Assemble and wire** following [`stl-files/assembly-instructions.md`](stl-files/assembly-instructions.md). It covers print orientation, mechanical assembly, pin tables for both boards, a pre-power checklist, and bring-up troubleshooting.
+3. **Flash the firmware** (next section), power the motor, and check the output with the [live viewer](#run).
 
 > [!CAUTION]
 > The VL53L0X `XSHUT` pin is not 5 V tolerant. On an Arduino Uno, never drive it HIGH directly. The firmware only pulls it LOW or releases it as an input.
