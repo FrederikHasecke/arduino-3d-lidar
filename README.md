@@ -10,7 +10,7 @@ A low-cost, 3D-printed rotating LiDAR scanner built from eight **VL53L0X time-of
 | :---: | :---: |
 | ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
 
-It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€130** from Amazon Germany, or about **€100** if you already have filament, screws and jumper wires (see [Bill of materials](#bill-of-materials)).
+It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€130** from Amazon Germany (an estimated **~$145** in the US), or about **€100 / ~$110** if you already have filament, screws and jumper wires (see [Bill of materials](#bill-of-materials)).
 
 **No hardware yet?** The repository includes a sample recording, so you can try the viewer first:
 
@@ -49,7 +49,7 @@ Measured on the bundled sample recording (`data/sequences/01`):
 | Angle reference | 15-tooth encoder disc with one gap for the zero position |
 | Host link | USB serial, 115200 baud, 36-byte binary packets |
 | Controllers | Arduino Uno (ATmega328P) or ESP32 (Arduino core 3.x) |
-| Parts cost | ~€130 per unit, ~€100 without filament, screws and jumper wires (Amazon Germany, 2026) |
+| Parts cost | ~€130 per unit, ~€100 without filament, screws and jumper wires (Amazon Germany, 2026); estimated ~$145 / ~$110 in the US |
 
 ## How it works
 
@@ -81,33 +81,34 @@ Even at this resolution, the output works for simple tasks such as building an o
 
 ## Bill of materials
 
-Prices are rounded 2026 prices for one unit from Amazon Germany, including 19% VAT. They vary by country and seller. The links simply point to the parts I used, or to a search for them where individual listings change too often to link directly. I have no affiliation with Amazon or any seller, and none of the links are affiliate links. If you have good sources for other countries, please open an issue or PR.
+Prices are rounded 2026 prices for one unit from Amazon Germany, including 19% VAT. The US column is a rough estimate of typical Amazon US prices, not a lookup of specific listings (see note 9). Prices vary by country and seller. The links simply point to the parts I used, or to a search for them where individual listings change too often to link directly. I have no affiliation with Amazon or any seller, and none of the links are affiliate links. If you have good sources for other countries, please open an issue or PR.
 
-| Part | Amount | Unit cost | Cost | Link |
-|------|-------:|----------:|-----:|------|
-| VL53L0X breakout board<sup>1</sup> | 8 | €2.85 | €22.80 | [Amazon](https://amzn.eu/d/0hz0XM7l) |
-| 12-wire slip ring<sup>2</sup> | 1 | €17.99 | €17.99 | [Amazon](https://amzn.eu/d/00M42s6L) |
-| Arduino Uno R3, compatible<sup>3</sup> | 1 | €13.99 | €13.99 | [Amazon](https://amzn.eu/d/07YWSVjQ) |
-| 9 V DC power supply<sup>4</sup> | 1 | €7.99 | €7.99 | [Amazon](https://amzn.eu/d/0caRRXWE) |
-| 6204-2RS ball bearing<sup>5</sup> | 1 | €9.99 | €9.99 | [Amazon](https://amzn.eu/d/0daEw33N) |
-| L298N motor driver | 1 | €4.99 | €4.99 | [Amazon](https://amzn.eu/d/0iNRK78D) |
-| TT gear motor, 3–6 V | 1 | €9.99 | €9.99 | [Amazon](https://amzn.eu/d/05aKF0C8) |
-| LM393 speed sensor module | 1 | €7.99 | €7.99 | [Amazon](https://amzn.eu/d/0ivhba8L) |
-| USB cable<sup>6</sup> | 1 | €4.19 | €4.19 | [Amazon](https://amzn.eu/d/00ykSAmE) |
-| PLA filament<sup>7</sup> | 131 g | – | €12.99 | [Amazon](https://amzn.eu/d/0cBkmGoz) |
-| M3 screws<sup>7</sup> | ~15 | – | €7.88 | [Amazon](https://amzn.eu/d/02Wt2UgE) |
-| Jumper wires<sup>7</sup> | ~40 | – | €6.99 | [Amazon](https://amzn.eu/d/0aRaSrCN) |
-| O-ring or rubber band, zip ties<sup>8</sup> | – | – | €1.00 | – |
-| **Total** | | | **€128.78** | |
+| Part | Amount | Unit cost | Cost | US est.<sup>9</sup> | Link |
+|------|-------:|----------:|-----:|-----:|------|
+| VL53L0X breakout board<sup>1</sup> | 8 | €2.85 | €22.80 | $24 | [Amazon](https://amzn.eu/d/0hz0XM7l) |
+| 12-wire slip ring<sup>2</sup> | 1 | €17.99 | €17.99 | $20 | [Amazon](https://amzn.eu/d/00M42s6L) |
+| Arduino Uno R3, compatible<sup>3</sup> | 1 | €13.99 | €13.99 | $15 | [Amazon](https://amzn.eu/d/07YWSVjQ) |
+| 9 V DC power supply<sup>4</sup> | 1 | €7.99 | €7.99 | $9 | [Amazon](https://amzn.eu/d/0caRRXWE) |
+| 6204-2RS ball bearing<sup>5</sup> | 1 | €9.99 | €9.99 | $10 | [Amazon](https://amzn.eu/d/0daEw33N) |
+| L298N motor driver | 1 | €4.99 | €4.99 | $6 | [Amazon](https://amzn.eu/d/0iNRK78D) |
+| TT gear motor, 3–6 V | 1 | €9.99 | €9.99 | $12 | [Amazon](https://amzn.eu/d/05aKF0C8) |
+| LM393 speed sensor module | 1 | €7.99 | €7.99 | $9 | [Amazon](https://amzn.eu/d/0ivhba8L) |
+| USB cable<sup>6</sup> | 1 | €4.19 | €4.19 | $6 | [Amazon](https://amzn.eu/d/00ykSAmE) |
+| PLA filament<sup>7</sup> | 131 g | – | €12.99 | $18 | [Amazon](https://amzn.eu/d/0cBkmGoz) |
+| M3 screws<sup>7</sup> | ~15 | – | €7.88 | $10 | [Amazon](https://amzn.eu/d/02Wt2UgE) |
+| Jumper wires<sup>7</sup> | ~40 | – | €6.99 | $7 | [Amazon](https://amzn.eu/d/0aRaSrCN) |
+| O-ring or rubber band, zip ties<sup>8</sup> | – | – | €1.00 | $1 | – |
+| **Total** | | | **€128.78** | **~$147** | |
 
 1. Must expose the `XSHUT` pin, which the firmware uses to assign the I²C addresses.
 2. Carries power, I²C and the `XSHUT` lines to the rotating head. The ESP32 wiring uses all 12 wires.
-3. Or an [ESP32-WROOM dev board](https://amzn.eu/d/0dcB7aNT) for about €9.99, you will need a different USB cable to flash this one, see 6.
+3. Or an [ESP32-WROOM dev board](https://amzn.eu/d/0dcB7aNT) for about €9.99 (~$10 in the US); you will need a different USB cable to flash this one, see 6.
 4. Powers the motor. Anything from 7 to 9 V DC works, for example a 2S Li-ion pack or a 9V battery; the L298N drops about 2 V.
 5. 20 × 47 × 14 mm (bore × OD × width), sealed on both sides; it supports the rotating head in the base top. The link is the LFD 6204 2RS used in the prototype. Any 6204-2RS or 6204-ZZ fits.
 6. USB-B for the Uno; micro-USB or USB-C for most ESP32 boards.
-7. Cost of a full pack (a 1 kg spool for the filament). One build uses only a small part of it; without these three rows, the parts cost about €100.
+7. Cost of a full pack (a 1 kg spool for the filament). One build uses only a small part of it; without these three rows, the parts cost about €100 (~$110 in the US).
 8. The O-ring or rubber band is the drive belt between the motor gear and the head. Zip ties hold the motor plate.
+9. Rounded estimates for comparable generic parts on Amazon US in 2026, before sales tax, at the same pack sizes as the euro column. They were not looked up listing by listing; treat them as a budget guide and expect ±20%. Corrections with real US prices are welcome.
 
 Several parts only come in packs (sensors in 5s or 10s, motors in 4s, LM393 modules in 5s), so if you start from nothing, expect to spend more than the total above and keep the spares. Most of these parts are also available on AliExpress, which is generally cheaper but has longer shipping times; I don't link specific listings there. A 3D printer, a soldering iron (most VL53L0X breakouts ship with loose headers) and basic hand tools are not included.
 
