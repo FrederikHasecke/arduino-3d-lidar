@@ -2,7 +2,7 @@
 
 A low-cost, 3D-printed rotating LiDAR scanner built from eight **VL53L0X time-of-flight sensors**, an **Arduino Uno or ESP32**, and a slip ring. It sweeps a full 360° at about 2 Hz with a ±15° vertical field of view and streams the scan over USB serial. Python tools record the scans and show them as a 3D point cloud, live or from a recording.
 
-It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€98** from Amazon Germany (see [Bill of materials](#bill-of-materials)).
+It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€115** from Amazon Germany (see [Bill of materials](#bill-of-materials)).
 
 **No hardware yet?** The repository includes a sample recording, so you can try the viewer first:
 
@@ -41,7 +41,7 @@ Measured on the bundled sample recording (`data/sequences/01`):
 | Angle reference | 15-tooth encoder disc with one gap for the zero position |
 | Host link | USB serial, 115200 baud, 36-byte binary packets |
 | Controllers | Arduino Uno (ATmega328P) or ESP32 (Arduino core 3.x) |
-| Parts cost | ~€98 per unit (Amazon Germany, 2026) |
+| Parts cost | ~€115 per unit (Amazon Germany, 2026) |
 
 ## How it works
 
