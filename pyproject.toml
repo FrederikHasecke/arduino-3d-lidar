@@ -35,4 +35,11 @@ testpaths = ["tests"]
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "scipy>=1.14",
+]
+media = [
+    "pyvista>=0.44",
+    "matplotlib>=3.9",
+    "pillow>=10",
+    "scipy>=1.14",
 ]

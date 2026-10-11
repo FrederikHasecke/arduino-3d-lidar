@@ -4,9 +4,9 @@ A low-cost, 3D-printed rotating LiDAR scanner built from eight **VL53L0X time-of
 
 It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR.
 
-| Rotating sensor head | Point cloud playback (5× speed) |
+| Rotating sensor head | Map built from the sample recording |
 | :---: | :---: |
-| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![3D point cloud of a room captured by the Arduino VL53L0X LiDAR](Images/data_fast.gif) |
+| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![3D point-cloud map of an enclosure, built up revolution by revolution from the Arduino VL53L0X LiDAR as the camera orbits](Images/map_orbit.gif) |
 
 ## Contents
 
@@ -44,6 +44,18 @@ Each reading is a distance plus the azimuth and elevation of its channel. The Py
 | ![Side view showing the elevation angle of each of the eight VL53L0X channels](Images/schematic.png) |
 | :---: |
 | *Mounting angles of the eight sensor channels* |
+
+Unrolled, one revolution is a small range image: one row per channel, one column per heading. This is what the scanner actually measures:
+
+| ![Range image of each revolution: 8 elevation rows by 360 degrees of heading, coloured by distance](Images/range_strip.gif) |
+| :---: |
+| *Range image of the sample recording, one revolution per frame (dark cells: no return)* |
+
+The sample was recorded on a slowly moving rover inside a small enclosure. Aligning the revolutions to each other (scan matching) recovers that motion and gives a map of the surroundings. Below, each revolution is replayed at the real 2 Hz inside that map. The red lines are the eight beams, which point in eight directions and rotate together:
+
+| ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
+| :---: |
+| *Replay inside the registered map (1× speed)* |
 
 Even at this resolution, the output works for simple tasks such as building an occupancy grid map:
 
@@ -97,6 +109,7 @@ The tools in [`python-receiver-code/`](python-receiver-code/) need Python 3.13+,
 | `offline_visualization.py` | Plays back recorded `.npy` frames. Uses the bundled sample by default. |
 | `receive_data.py` | Reads the serial stream and saves one `.npy` file per revolution |
 | `live_visualization.py` | Shows the point cloud live from the serial stream. Can also save frames (`--save`). |
+| `render_readme_media.py` | Registers a recording into a map and renders the README images and GIFs (map, replay, range strip). Needs the `media` dependency group. |
 
 ### Install
 
@@ -136,9 +149,21 @@ Record scans to `data/sequences/<timestamp>/lidar_points/` without a viewer:
 uv run python python-receiver-code/receive_data.py --port /dev/ttyUSB0
 ```
 
+Turn a recording into a map, a replay GIF and a range strip like the ones above. This needs the optional `media` group (`uv sync --group media`, or `pip install --group media` with pip 25.1+). It renders off-screen, so no display is needed. Point it at your own recording, and the results go to a `media/` folder next to it (here `data/sequences/<timestamp>/media/`):
+
+```bash
+uv run python python-receiver-code/render_readme_media.py --path data/sequences/<timestamp>/lidar_points
+```
+
+Without `--path`, it renders the bundled sample into `Images/` (the images in this README). Mapping works best when the scanner moves slowly on a flat floor and sees walls within about 1.2 m. On short recordings, or if the map looks empty, lower `--min-support`.
+
 Useful options:
 
-- `--path DIR_OR_FILE` (offline): play a different recording
+- `--path DIR_OR_FILE` (offline, media): use a different recording
+- `--only map|replay|range` (media): render one variant only; repeat to pick several
+- `--out-dir DIR` (media): choose where the images go
+- `--min-support N` (media): keep map points seen by at least N other revolutions (default 3)
+- `--replay-revolutions N` (media): length of the replay GIF (default 40, at 2 per second)
 - `--fps N` (offline): set the playback speed
 - `--point-size PX`: set the size of the drawn points
 - `--frame-limit N` (capture): stop after N revolutions
@@ -152,7 +177,7 @@ Run any script with `--help` to see all options.
 uv run pytest
 ```
 
-The tests check the packet parser, frame assembly, and coordinate conversion. They need no hardware and no OpenGL.
+The tests check the packet parser, frame assembly, coordinate conversion, and scan registration. They need no hardware and no OpenGL.
 
 ## Data format and serial protocol
 
@@ -170,7 +195,8 @@ All values are big-endian `uint16`. A packet whose 32-byte payload is all `0xFF`
 
 - **Sparse:** about 140 valid points per revolution. That's enough for occupancy maps, but not for detailed 3D reconstruction.
 - **Short range:** the VL53L0X is specified to 2 m, and is often less in bright light or on dark surfaces.
-- **Angle accuracy:** between encoder teeth, the angle is interpolated from a fixed timer that assumes exactly 2 Hz. Any speed change shows up as angular error.
+- **Angle accuracy:** between encoder teeth, the angle is interpolated from a fixed timer that assumes exactly 2 Hz. Any speed change shows up as angular error. The sample recording also has spurious encoder ticks, each of which turns the rest of a revolution by 24°. For the map and replay, `render_readme_media.py` ignores the encoder angles and spaces each revolution's readings evenly in time between sync packets. The viewers still use the raw angles.
+- **Mapping is planar:** scan registration assumes the scanner moves on a flat floor (x, y and heading only). Walls in the map are about 10 cm thick, which reflects the sensor noise.
 - **No calibration workflow:** the channel offsets are hard-coded in `offline_visualization.py`.
 
 ## Related projects
