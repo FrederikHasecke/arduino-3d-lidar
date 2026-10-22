@@ -6,9 +6,9 @@
 
 A low-cost, 3D-printed rotating LiDAR scanner built from eight **VL53L0X time-of-flight sensors**, an **Arduino Uno or ESP32**, and a slip ring. It sweeps a full 360° at about 2 Hz with a ±15° vertical field of view and streams the scan over USB serial. Python tools record the scans and show them as a 3D point cloud, live or from a recording.
 
-| Rotating sensor head | Replay inside the registered map |
+| Rotating sensor head | Map built from the sample recording |
 | :---: | :---: |
-| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
+| ![DIY 3D LiDAR scanner with eight VL53L0X sensors spinning on a 3D-printed head](Images/spinning_lidar_small.gif) | ![3D point-cloud map of an enclosure, built up revolution by revolution from the Arduino VL53L0X LiDAR as the camera orbits](Images/map_orbit.gif) |
 
 It produces a coarse point cloud, suitable for experiments, teaching, and rough room-scale mapping. It does not replace a commercial LiDAR. The parts for one unit cost about **€130** from Amazon Germany (an estimated **~$145** in the US), or about **€100 / ~$110** if you already have filament, screws and jumper wires (see [Bill of materials](#bill-of-materials)).
 
@@ -67,11 +67,11 @@ Unrolled, one revolution is a small range image: one row per channel, one column
 | :---: |
 | *Range image of the sample recording, one revolution per frame (dark cells: no return)* |
 
-The sample was recorded on a slowly moving rover inside a small enclosure. Aligning the revolutions to each other (scan matching) recovers that motion and gives a map of the surroundings. The replay at the top of this page plays each revolution at the real 2 Hz inside that map. The red lines are the eight beams, which point in eight directions and rotate together. Below, the same map is built up revolution by revolution:
+The sample was recorded on a slowly moving rover inside a small enclosure. Aligning the revolutions to each other (scan matching) recovers that motion and gives a map of the surroundings. The map at the top of this page is built up revolution by revolution. Below, the replay plays each revolution at the real 2 Hz inside that map. The red lines are the eight beams, which point in eight directions and rotate together:
 
-| ![3D point-cloud map of an enclosure, built up revolution by revolution from the Arduino VL53L0X LiDAR as the camera orbits](Images/map_orbit.gif) |
+| ![Replay of the scan at 2 Hz: the scanner moves along its path through a faint map, eight beams sweeping](Images/replay.gif) |
 | :---: |
-| *Map built from the sample recording* |
+| *Replay inside the registered map (2 Hz)* |
 
 Even at this resolution, the output works for simple tasks such as building an occupancy grid map:
 
